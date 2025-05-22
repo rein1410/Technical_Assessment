@@ -10,11 +10,14 @@ import {
   UploadedFile,
   ParseFilePipe,
   FileTypeValidator,
+  Query,
 } from '@nestjs/common';
 import { CsvService } from './csv.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiQuery } from '@nestjs/swagger';
 import { FileUploadDto } from './dto/file-upload.dto';
+import { ListCsvDto } from './dto/list-csv.dto';
+import { ILike } from 'typeorm';
 
 @Controller('api/csv')
 export class CsvController {
@@ -31,7 +34,12 @@ export class CsvController {
   async uploadFile(
     @UploadedFile(
       new ParseFilePipe({
-        validators: [new FileTypeValidator({ fileType: 'text/csv', skipMagicNumbersValidation: true })],
+        validators: [
+          new FileTypeValidator({
+            fileType: 'text/csv',
+            skipMagicNumbersValidation: true,
+          }),
+        ],
       }),
     )
     file: Express.Multer.File,
@@ -41,8 +49,16 @@ export class CsvController {
   }
 
   @Get()
-  findAll() {
-    return this.csvService.findAll();
+  findAll(@Query() query: ListCsvDto) {
+    const { search, email } = query;
+    return this.csvService.findAll(
+      {
+        where: {
+          email: email ? ILike(`%${email}%`) : undefined,
+        }
+      },
+      search,
+    );
   }
 
   // @Get(':id')

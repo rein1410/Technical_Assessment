@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, DeepPartial, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeepPartial, Entity, PrimaryColumn, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 abstract class BaseEntity {
     protected constructor(input?: DeepPartial<BaseEntity>) {
@@ -6,7 +6,7 @@ abstract class BaseEntity {
             Object.assign(this, input);
         }
     }
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('identity', { generatedIdentity: 'BY DEFAULT' })
     id: number;
     @CreateDateColumn()
     createdAt: Date;
