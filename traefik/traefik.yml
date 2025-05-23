@@ -19,8 +19,12 @@ api:
   dashboard: true
   insecure: true
 
+# providers:
+#   docker:
+#     exposedByDefault: true
+
 providers:
-  docker:
+  swarm:
     exposedByDefault: true
 
 # certificatesResolvers:

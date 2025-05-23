@@ -28,10 +28,10 @@ interface DataTableProps<TData, TValue> {
   columnFilters?: ColumnFiltersState;
   setColumnFilters?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   useGlobalFilter?: {
-    placeholder: string,
-    globalFilter: string | undefined,
-    setGlobalFilter: React.Dispatch<React.SetStateAction<string | undefined>>,
-  }
+    placeholder: string;
+    globalFilter: string | undefined;
+    setGlobalFilter: React.Dispatch<React.SetStateAction<string | undefined>>;
+  };
 }
 
 export function DataTable<TData, TValue>({
@@ -56,23 +56,29 @@ export function DataTable<TData, TValue>({
       pagination,
       columnFilters,
     },
-    
   });
 
   return (
     <div>
-      {useGlobalFilter &&
-      <div className="flex items-center py-4">
-        <DebouncedInput
-          value={useGlobalFilter.globalFilter ?? ""}
-          placeholder={useGlobalFilter.placeholder}
-          onChange={(value) =>
-            useGlobalFilter.setGlobalFilter(value.toString())
-          }
-          debounce={500}
-          className="max-w-sm"
-        />
-      </div>}
+      {useGlobalFilter && (
+        <div className="flex items-center py-4">
+          <DebouncedInput
+            value={useGlobalFilter.globalFilter ?? ""}
+            placeholder={useGlobalFilter.placeholder}
+            onChange={value => {
+              if (setPagination) {
+                setPagination(curr => ({
+                  ...curr,
+                  pageIndex: 0,
+                }));
+              }
+              useGlobalFilter.setGlobalFilter(value.toString());
+            }}
+            debounce={500}
+            className="max-w-sm"
+          />
+        </div>
+      )}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -80,19 +86,22 @@ export function DataTable<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map(header => {
                   return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                        {header.column.getCanFilter() ? (
-                          <div>
-                            <Filter column={header.column} />
-                          </div>
-                        ) : null}
-                      </TableHead>
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                      {header.column.getCanFilter() ? (
+                        <div>
+                          <Filter
+                            column={header.column}
+                            setPagination={setPagination}
+                          />
+                        </div>
+                      ) : null}
+                    </TableHead>
                   );
                 })}
               </TableRow>
@@ -133,7 +142,7 @@ export function DataTable<TData, TValue>({
         <span className="flex items-center gap-1">
           <div>Page</div>
           <strong>
-            {table.getState().pagination.pageIndex + 1} of{' '}
+            {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount().toLocaleString()}
           </strong>
         </span>
@@ -158,7 +167,13 @@ export function DataTable<TData, TValue>({
   );
 }
 
-function Filter({ column }: { column: Column<any, unknown> }) {
+function Filter({
+  column,
+  setPagination,
+}: {
+  column: Column<any, unknown>;
+  setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
+}) {
   const columnFilterValue = column.getFilterValue();
   const { filterVariant } =
     (column.columnDef.meta as { filterVariant: string }) ?? {};
@@ -194,15 +209,19 @@ function Filter({ column }: { column: Column<any, unknown> }) {
       value={columnFilterValue?.toString()}
     >
       {/* See faceted column filters example for dynamic select options */}
-      <option value="">All</option>
-      <option value="complicated">complicated</option>
-      <option value="relationship">relationship</option>
-      <option value="single">single</option>
     </select>
   ) : (
     <DebouncedInput
       className="w-36 h-5 border shadow rounded"
-      onChange={value => column.setFilterValue(value)}
+      onChange={value => {
+        if (setPagination) {
+          setPagination(curr => ({
+            ...curr,
+            pageIndex: 0,
+          }));
+        }
+        column.setFilterValue(value);
+      }}
       placeholder={`Search...`}
       type="text"
       value={(columnFilterValue ?? "") as string}
