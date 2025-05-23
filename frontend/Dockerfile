@@ -3,10 +3,11 @@ RUN npm i -g pnpm
 WORKDIR /app
 
 FROM base AS build
+ARG MODE=production
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm i --frozen-lockfile
 COPY . .
-RUN pnpm build
+RUN pnpm build --mode ${MODE}
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html

@@ -4,8 +4,10 @@ services:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - MODE=development
     ports:
-      - "80:3001"
+      - "3001:80"
     networks:
       - test_default
 

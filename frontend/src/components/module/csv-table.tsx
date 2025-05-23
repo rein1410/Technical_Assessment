@@ -1,14 +1,5 @@
 import { getCsvData } from "@/api/csv";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { DataTable } from "../ui/data-table";
 import type { ColumnDef, ColumnFiltersState, PaginationState } from "@tanstack/react-table";
 import { useState } from "react";

@@ -1,0 +1,66 @@
+services:
+
+  traefik:
+    build:
+      context: ./traefik
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - "./traefik-public-certificates:/certificates"
+    networks:
+      - test_default
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    networks:
+      - test_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`frontend.docker.localhost`)"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      # - "traefik.http.routers.frontend.tls=true"
+      # - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=database
+      - NODE_ENV=production
+    depends_on:
+      - database 
+    networks:
+      - test_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`backend.docker.localhost`)"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
+      # - "traefik.http.routers.backend.tls=true"
+      # - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+
+  database:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: supersecret
+      POSTGRES_DB: database
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - test_default
+
+volumes:
+  postgres_data:
+
+networks:
+  test_default:
