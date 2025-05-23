@@ -11,6 +11,8 @@ import {
   ParseFilePipe,
   FileTypeValidator,
   Query,
+  MaxFileSizeValidator,
+  BadRequestException,
 } from '@nestjs/common';
 import { CsvService } from './csv.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -35,6 +37,9 @@ export class CsvController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
+          new MaxFileSizeValidator({
+            maxSize: 2000 * 1000,
+          }),
           new FileTypeValidator({
             fileType: 'text/csv',
             skipMagicNumbersValidation: true,
@@ -44,18 +49,19 @@ export class CsvController {
     )
     file: Express.Multer.File,
   ) {
-    console.log(file);
     return await this.csvService.upload(file.buffer);
   }
 
   @Get()
   findAll(@Query() query: ListCsvDto) {
-    const { search, email } = query;
+    const { search, email, skip, take } = query;
     return this.csvService.findAll(
       {
         where: {
           email: email ? ILike(`%${email}%`) : undefined,
-        }
+        },
+        skip,
+        take
       },
       search,
     );

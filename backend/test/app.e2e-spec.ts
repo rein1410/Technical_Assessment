@@ -21,4 +21,10 @@ describe('AppController (e2e)', () => {
       .expect(200)
       .expect('Hello World!');
   });
+
+  it ('/api/csv/upload (POST)', () => {
+    return request(app.getHttpServer())
+      .post('/api/csv/upload')
+      .expect(400)
+  })
 });
